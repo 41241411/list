@@ -1,0 +1,45 @@
+-- 1. users（使用者表）
+CREATE TABLE users (
+  id BIGSERIAL PRIMARY KEY,
+  auth_id UUID UNIQUE NOT NULL,      -- 關聯到 Supabase Auth 的 id
+  name VARCHAR(100) NOT NULL,
+  known_word_count INT DEFAULT 0,
+  create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  image VARCHAR(255)
+);
+
+-- 2. words（單字表）
+CREATE TABLE words (
+  id BIGSERIAL PRIMARY KEY,
+  word_en VARCHAR(100) NOT NULL,
+  word_zh VARCHAR(255),
+  example_en TEXT,
+  example_zh TEXT,
+  part_of_speech VARCHAR(50),
+  chapter INT,
+  unit INT
+);
+
+-- 3. word_progress（學習進度）
+CREATE TABLE word_progress (
+  id BIGSERIAL PRIMARY KEY,
+  user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  word_id BIGINT NOT NULL REFERENCES words(id) ON DELETE CASCADE,
+  last_reviewed TIMESTAMP,
+  familiarity INT DEFAULT 0 CHECK (familiarity BETWEEN 0 AND 5),
+  UNIQUE (user_id, word_id)
+);
+
+-- 4. tags（標籤主表）
+CREATE TABLE tags (
+  id BIGSERIAL PRIMARY KEY,
+  name VARCHAR(100) UNIQUE NOT NULL
+);
+
+-- 5. word_tags（中繼表：單字與標籤多對多）
+CREATE TABLE word_tags (
+  id BIGSERIAL PRIMARY KEY,
+  word_id BIGINT NOT NULL REFERENCES words(id) ON DELETE CASCADE,
+  tag_id BIGINT NOT NULL REFERENCES tags(id) ON DELETE CASCADE,
+  UNIQUE (word_id, tag_id)
+);
